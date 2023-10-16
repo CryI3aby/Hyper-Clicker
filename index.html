@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" id="html" data-theme="">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="shortcut icon" href="#">
+    <title>Hyper Clicker</title>
+  </head>
+
+  <body>
+    <div class="container select-none">
+      
+      <div class="shadow-md bg-base-200">
+        <div class="grid grid-cols-4 gap-4 p-3">
+          <input type="number" id="Hours" placeholder="Hours" min="0" class="input placeholder-gray-500 input-bordered input-sm text-sm focus:outline-none text-center" />
+          <input type="number" id="Mins" placeholder="Mins" min="0" class="input placeholder-gray-500 input-bordered input-sm text-sm focus:outline-none text-center" />
+          <input type="number" id="Secs" placeholder="Secs" min="0" class="input placeholder-gray-500 input-bordered input-sm text-sm focus:outline-none text-center" >
+          <input type="number" id="Millisecs" placeholder="Millisecs" min="1" class="input placeholder-gray-500 input-bordered input-sm text-sm focus:outline-none text-center" />
+        </div>
+        
+        <div class="flex row px-3 pb-3 gap-4 mb-2 place-items-center">
+          <input type="number" id="rndOffsetMillisecs" placeholder="Millisecs" class="input placeholder-gray-500 input-bordered input-sm text-sm w-[108px] focus:outline-none text-center" />
+          <p class="text-sm">± Random Offset</p>
+          <input type="checkbox" id="rndOffset" class="checkbox checkbox-primary" />
+          <button id="clearButton" class="btn btn-active btn-sm w-[193px]">Clear</button>
+        </div>
+      </div>
+      
+      <div class="flex flex-row">
+          <div class="grid grid-cols-2 gap-4 p-3 shadow-md bg-base-200 mr-2 w-1/2">
+            <p class="text-sm my-auto">Mouse Button:</p>
+            <select id="mouseButton" class="select select-primary select-sm">
+              <option selected>Left</option>
+              <option>Right</option>
+              <option>Middle</option>
+            </select>
+            <p class="text-sm my-auto">Click Type:</p>
+            <select id="clickType" class="select select-primary select-sm">
+              <option selected>Single</option>
+              <option>Double</option>
+            </select>
+          </div>
+          
+          <div class="w-[277px] shadow-md bg-base-200 ">
+            <div class="flex flex-row p-3">     
+              <input type="radio" id="limitedRepeat" name="radio1" class="radio radio-primary my-auto mr-3" />
+              <p class="text-sm my-auto">Repeat</p>
+              <input type="number" id="limitedCount" placeholder="Times" class="input placeholder-gray-500 input-bordered input-sm text-sm ml-3 w-full my-auto focus:outline-none"/>
+            </div>
+  
+            <div class="flex flex-row p-3">
+              <input type="radio" id="infiniteRepeat" name="radio1" class="radio radio-primary my-auto mr-3" checked />
+              <p class="text-sm my-auto">Repeat Until Stopped</p>    
+            </div>
+          </div>   
+      </div>
+
+      <div class="flex flex-row shadow-md bg-base-200 mt-2">
+
+        <div class="flex gap-4 p-3 w-full">
+          <input type="radio" id="currentLocation" name="radio2" class="radio radio-primary my-auto w-16 h-8" checked/>
+          <p class="text-sm my-auto font-bold">Current Location</p>
+        </div>
+            
+        <div class="flex flex-row gap-4 p-3">
+          <input type="radio" id="pickedLocation" name="radio2" class="radio radio-primary my-auto w-16 h-8" />
+          <button id="pickButton" class="btn col-span-3 btn-active text-sm my-auto btn-sm">Pick</button>
+
+          <div class="col space-y-2">
+            <input type="number" id="xCoord" placeholder="X" class="input placeholder-gray-500 input-bordered input-sm text-center h-[25px] w-[100px] focus:outline-none"/>
+            <input type="number" id="yCoord" placeholder="Y" class="input placeholder-gray-500 input-bordered input-sm text-center h-[25px] w-[100px] focus:outline-none"/>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="bg-base-200 mt-2">
+        <div class="grid grid-cols-2 gap-2 p-3">
+          <button id="startButton" class="btn btn-active focus:outline-none">Start <kbd id="startKey" class="kbd kbd-sm"></kbd></button>
+          <button id="stopButton" class="btn btn-active focus:outline-none" disabled>Stop <kbd id="stopKey" class="kbd kbd-sm"></kbd></button>
+          <button id="hotkeyButton" class="btn btn-active focus:outline-none">Hotkey</button>
+          <button id="themeButton" class="btn btn-active focus:outline-none">Theme</button>
+        </div>
+      </div>
+      
+
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
