@@ -18,3 +18,4 @@ There are some problems with hotkeys related to Tauri API (or I just haven’t f
 
 ## Screenshot
 
+![App Screenshot](.github/Hyper_Clicker.png)
