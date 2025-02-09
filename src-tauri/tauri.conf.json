@@ -1,54 +1,41 @@
 {
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Hyper Clicker",
+  "mainBinaryName": "Hyper Clicker",
+  "version": "2.0.0",
+  "identifier": "Hyper-Clicker",
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist",
-    "withGlobalTauri": true
+    "beforeDevCommand": "bun run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "bun run build",
+    "frontendDist": "../dist"
   },
-  "package": {
-    "productName": "Hyper Clicker",
-    "version": "1.0.0"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
-      },
-      "window": {
-        "all": true
-      },
-      "globalShortcut": {
-        "all": true
-      }
-    },
-    "bundle": {
-      "active": true,
-      "targets": "all",
-      "identifier": "CryI3aby",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico",
-        "icons/icon.png"
-      ]
-    },
-    "security": {
-      "csp": null
-    },
+  "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
-        "visible": false,
-        "fullscreen": false,
-        "resizable": false,
         "title": "Hyper Clicker",
-        "width": 515,
-        "height": 450
+        "width": 495,
+        "height": 395,
+        "visible": false,
+        "resizable": false,
+        "maximizable": false,
+        "center": true
       }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
     ]
   }
 }

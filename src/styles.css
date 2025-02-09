@@ -1,24 +1,47 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui";
 
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-  overflow: hidden;
+body {
+  padding: 5px;
 }
 
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
+#overlay {
+  user-select: none;
+}
+
+input[type=number] {
+  height: 30px;
+  text-align: center;
+}
+
+input[type=number]:focus {
+  outline: none;
+  border-color: rgb(96, 93, 255);
+}
+
+input[type=checkbox],
+input[type=radio] {
+  --border: 2px;
+}
+
+input:disabled {
+  background-color: hsla(0, 0%, 0%, 0.1);
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-body {
-  padding: 6px;
+::placeholder {
+  color: rgb(99, 99, 99)
+}
+
+button {
+  font-size: 15px;
+}
+
+select {
+  outline: none;
 }
