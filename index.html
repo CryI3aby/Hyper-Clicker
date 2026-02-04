@@ -1,119 +1,14 @@
 <!doctype html>
-<html lang="en" id="html" data-theme="">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hyper Clicker</title>
-    <script type="module" src="/src/main.ts" defer></script>
+    <title></title>
   </head>
 
   <body>
-    <main class="container space-y-[5px]">
-      <!-- OVERLAYS -->
-      <div id="hotkeyOverlay" class="hidden fixed top-0 left-0 w-screen h-screen bg-black/65 z-50 items-center justify-center pb-10">
-        <p class="text-white text-4xl font-bold">Press any button</p>
-      </div>
-      <div id="locationOverlay" class="hidden fixed top-0 left-0 w-screen h-screen bg-black/65 z-50 items-center justify-center pb-10">
-        <p class="text-white text-4xl font-bold">Click on the <br><br> desired location</p>
-      </div>
-      <!--  -->
-      <!-- VALUES -->
-      <div class="bg-base-200" id="timings">
-
-        <div class="grid gap-2 grid-cols-4 p-3">
-          <input type="number" id="Hours" placeholder="Hours" min="0" class="input" />
-          <input type="number" id="Mins" placeholder="Minutes" min="0" class="input" />
-          <input type="number" id="Secs" placeholder="Seconds" min="0" class="input" />
-          <input type="number" id="Millisecs" placeholder="Millisecs" min="1" class="input" />
-        </div>
-
-        <div class="grid gap-2 grid-cols-4 px-3 pb-3">
-          <input type="number" id="Offset" placeholder="Millisecs" min="0" class="input" />
-          <p class="text-sm whitespace-nowrap content-center">± Random Offset</p>
-
-          <div class="flex items-center col-span-2 gap-3">
-            <input type="checkbox" id="OffsetCheckbox" class="checkbox checkbox-primary" />
-            <button id="clearButton" class="btn btn-soft btn-primary btn-sm flex-1">Clear</button>
-          </div>
-        </div>
-
-      </div>
-      <!-- -->
-      <!-- CLICK OPTIONS -->
-      <div class="grid grid-cols-4 gap-[5px]">
-
-        <div class="grid grid-cols-2 grid-rows-2 col-span-2 gap-3 bg-base-200 p-3">
-          <div class="content-center">
-            <p class="text-sm">Mouse Button:</p>
-          </div>
-          <div>
-            <select id="mouseButton" class="select select-primary select-sm">
-              <option selected value="1">Left</option>
-              <option value="2">Right</option>
-              <option value="3">Middle</option>
-            </select>
-          </div>
-
-          <div class="content-center">
-            <p class="text-sm my-auto">Click Type:</p>
-          </div>
-          <div>
-            <select id="clickType" class="select select-primary select-sm">
-              <option selected value="1">Single</option>
-              <option value="2">Double</option>
-            </select>
-          </div>
-        </div>
-      
-        <div class="grid grid-cols-2 grid-rows-2 col-span-2 gap-3 bg-base-200 p-3">
-          <div class="col-span-2">
-            <div class="flex gap-3">     
-              <input type="radio" id="limitedRepeat" name="radio1" class="radio radio-primary my-auto" />
-              <p class="text-sm my-auto">Repeat</p>
-              <input type="number" id="limitedCount" placeholder="Times" class="input" />
-            </div>
-          </div>
-          <div class="col-span-2 pt-[3px]">
-            <div class="flex gap-3">
-              <input type="radio" id="infiniteRepeat" name="radio1" class="radio radio-primary my-auto" checked />
-              <p class="text-sm my-auto">Repeat Until Stopped</p>    
-            </div>
-          </div>
-        </div>
-        
-      </div>
-      <!-- -->
-      <!-- LOCATION -->
-      <div class="grid grid-cols-5 gap-3 p-3 bg-base-200">
-
-        <div class="flex col-span-2 gap-3 items-center">
-          <input type="radio" id="currentLocation" name="radio2" class="radio radio-primary radio-xl" checked/>
-          <p class="text-sm">Current Location</p>
-        </div>
-        
-        <div class="flex col-span-3 gap-3 items-center">
-          <input type="radio" id="pickedLocation" name="radio2" class="radio radio-primary radio-xl" />
-          <button id="pickButton" class="btn btn-soft btn-primary btn-sm w-[30%]">Pick</button>
-          <input type="number" id="xCoord" placeholder="X" min="0" class="input" />
-          <input type="number" id="yCoord" placeholder="Y" min="0" class="input" />
-        </div>
-            
-      </div>
-      <!-- -->
-      <!-- BUTTONS -->
-      <div class="grid grid-cols-2 gap-3 bg-base-200 mt-[5px] p-3">
-        <button class="btn btn-primary btn-soft inline-block align-middle" id="startButton">Start </kbd></button>
-        <button class="btn btn-primary btn-soft inline-block align-middle" id="stopButton" disabled>Stop </kbd></button>
-        <button class="btn btn-primary btn-soft" id="hotkeyButton" >Hotkey</button>
-        <div class="flex gap-3 ">
-          <button class="btn btn-primary btn-soft flex-grow" id="themeButton">Theme</button>
-          <button class="btn btn-primary btn-soft" id="saveButton">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M21 7v12q0 .825-.587 1.413T19 21H5q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h12zm-9 11q1.25 0 2.125-.875T15 15t-.875-2.125T12 12t-2.125.875T9 15t.875 2.125T12 18m-6-8h9V6H6z"/></svg>
-          </button>
-        </div>
-      </div>
-      <!-- -->
-    </main>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

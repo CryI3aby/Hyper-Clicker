@@ -2,8 +2,8 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Hyper Clicker",
   "mainBinaryName": "Hyper Clicker",
-  "version": "2.0.0",
-  "identifier": "Hyper-Clicker",
+  "version": "3.0.0",
+  "identifier": "CryI3aby",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
@@ -11,16 +11,15 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "withGlobalTauri": true,
     "windows": [
       {
         "title": "Hyper Clicker",
-        "width": 495,
-        "height": 395,
+        "width": 500,
+        "height": 360,
         "visible": false,
         "resizable": false,
         "maximizable": false,
-        "center": true
+        "transparent": true
       }
     ],
     "security": {
