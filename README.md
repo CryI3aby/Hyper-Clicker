@@ -2,6 +2,8 @@
 
 A modern lightweight auto-clicker built with Tauri
 
+!WARNING! The hotkeys are in bad shape. I'll fix that very soon.
+
 ## Used
 
 - [Tauri](https://github.com/tauri-apps/tauri)
