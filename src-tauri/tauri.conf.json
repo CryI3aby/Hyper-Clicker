@@ -3,7 +3,7 @@
   "productName": "Hyper Clicker",
   "mainBinaryName": "Hyper Clicker",
   "version": "3.0.0",
-  "identifier": "CryI3aby",
+  "identifier": "Hyper-Clicker",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",

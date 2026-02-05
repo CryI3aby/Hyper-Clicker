@@ -241,7 +241,7 @@ async fn capture_hotkey() -> Result<String, String> {
         let keys = device_state.get_keys();
         if keys.is_empty() { break; }
         for k in keys {
-            if !captured_keys.contains(&k) {
+            if !captured_keys.contains(&k) && captured_keys.len() < 2 {
                 captured_keys.push(k);
             }
         }
@@ -258,8 +258,21 @@ async fn capture_hotkey() -> Result<String, String> {
             Keycode::LAlt | Keycode::RAlt => if !mods.contains(&"Alt") { mods.push("Alt") },
             Keycode::LMeta | Keycode::RMeta => if !mods.contains(&"Command") { mods.push("Command") },
             _ => {
-                let k_str = format!("{:?}", key);
-                main_key = k_str.replace("Key", "");
+                main_key = match key {
+                    Keycode::Comma => "Comma".to_string(),
+                    Keycode::Dot => "Period".to_string(),
+                    Keycode::Slash => "Slash".to_string(),
+                    Keycode::Semicolon => "Semicolon".to_string(),
+                    Keycode::Apostrophe => "Quote".to_string(),
+                    Keycode::LeftBracket => "BracketLeft".to_string(),
+                    Keycode::RightBracket => "BracketRight".to_string(),
+                    Keycode::BackSlash => "Backslash".to_string(),
+                    Keycode::Minus => "Minus".to_string(),
+                    Keycode::Equal => "Equal".to_string(),
+                    Keycode::Grave => "Backquote".to_string(),
+                    // Для всех остальных (F1-F12, буквы, цифры) оставляем старую логику
+                    _ => format!("{:?}", key).replace("Key", ""),
+                };
             }
         }
     }

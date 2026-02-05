@@ -375,7 +375,7 @@
                 </div>
             </Button>
             <Dialog v-model:visible="hotkeyChangePopped" :draggable="false" modal header="Hotkey Change" :closable="false" :style="{ width: '60%' }">
-                <p>Press the desired button</p>
+                <p>Press and release the shortcut (Max 2 keys)</p>
             </Dialog>
         </div>
     </div>
