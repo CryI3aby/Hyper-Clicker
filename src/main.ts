@@ -59,11 +59,23 @@ window.addEventListener("DOMContentLoaded", () => {
     getCurrentWindow().show();
 
     document.addEventListener('contextmenu', event => event.preventDefault());
+
+    const blockedCodes = ['KeyF', 'KeyR', 'KeyP', 'KeyS', 'KeyU', 'KeyG', 'KeyJ', 'KeyA'];
+    const devToolsCodes = ['KeyI', 'KeyJ', 'KeyC', ];
+
     window.addEventListener('keydown', (event) => {
-        if (event.key == 'F3' || event.key == 'F5' || event.key == 'F7' || event.key == "F12" ) {
+        const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+        const isShift = event.shiftKey;
+
+        if (isCtrlOrCmd && blockedCodes.includes(event.code)) {
             event.preventDefault();
         }
-        if (event.ctrlKey && event.key === 'f') {
+
+        if (isCtrlOrCmd && isShift && devToolsCodes.includes(event.code)) {
+            event.preventDefault();
+        }
+
+        if (['F3', 'F5', 'F7', 'F12'].includes(event.code)) {
             event.preventDefault();
         }
     });

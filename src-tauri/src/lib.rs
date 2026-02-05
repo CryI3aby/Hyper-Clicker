@@ -15,20 +15,14 @@ use rand::Rng;
 
 
 #[derive(Clone, serde::Deserialize)]
-#[serde(tag = "type", content = "value")]
-enum RepeatMode {
-    Infinite,
-    Count(u32),
-}
-
-#[derive(Clone, serde::Deserialize)]
 struct ClickerConfig {
     interval_ms: u64,
     offset_ms: u64,
     offset_enabled: bool,
     button_type: String,
     click_type: String,
-    repeat_mode: RepeatMode,
+    is_infinite: bool,
+    click_count: u32,
     lock_at_enabled: bool,
     x: i32,
     y: i32,
@@ -36,12 +30,17 @@ struct ClickerConfig {
 
 struct ClickerState {
     is_running: AtomicBool,
+
     interval_ms: AtomicU64,
     offset_ms: AtomicU64,
     offset_enabled: AtomicBool,
+
     button_type: Mutex<String>,
     click_type: Mutex<String>,
-    repeat_mode: Mutex<RepeatMode>,
+
+    is_infinite: AtomicBool,
+    remaining_clicks: AtomicU64,
+
     lock_at_enabled: AtomicBool,
     coords: Mutex<(i32, i32)>,
 
@@ -64,10 +63,15 @@ fn send_config(config: ClickerConfig, state: tauri::State<Arc<ClickerState>>) {
         let mut ct = state.click_type.lock().unwrap();
         *ct = config.click_type;
     }
-    {
-        let mut rm = state.repeat_mode.lock().unwrap();
-        *rm = config.repeat_mode;
+
+    state.is_infinite.store(config.is_infinite, Ordering::SeqCst);
+
+    if config.is_infinite {
+        state.remaining_clicks.store(u64::MAX, Ordering::SeqCst);
+    } else {
+        state.remaining_clicks.store(config.click_count as u64, Ordering::SeqCst);
     }
+
     {
         let mut co = state.coords.lock().unwrap();
         *co = (config.x, config.y);
@@ -77,6 +81,7 @@ fn send_config(config: ClickerConfig, state: tauri::State<Arc<ClickerState>>) {
 fn request_config(app: &tauri::AppHandle) {
     let _ = app.emit("request-config", ());
 }
+
 
 #[tauri::command]
 fn start_engine(state: tauri::State<Arc<ClickerState>>) {
@@ -105,21 +110,23 @@ fn engine(state: Arc<ClickerState>, app_handle: tauri::AppHandle) {
             if !state.is_running.load(Ordering::SeqCst) {
                 thread::park();
             }
+
             if !state.is_running.load(Ordering::SeqCst) {
                 continue;
             }
 
-            let mut stop_after_this = false;
-            {
-                let mut mode = state.repeat_mode.lock().unwrap();
-                if let RepeatMode::Count(ref mut count) = *mode {
-                    if *count > 0 {
-                        *count -= 1;
-                    }
-                    if *count == 0 {
-                        stop_after_this = true;
-                    }
+            let is_infinite = state.is_infinite.load(Ordering::SeqCst);
+
+            if !is_infinite {
+                let remaining = state.remaining_clicks.load(Ordering::SeqCst);
+
+                if remaining == 0 {
+                    state.is_running.store(false, Ordering::SeqCst);
+                    let _ = app_handle.emit("engine-stopped", ());
+                    continue;
                 }
+
+                state.remaining_clicks.fetch_sub(1, Ordering::SeqCst);
             }
 
             if state.lock_at_enabled.load(Ordering::SeqCst) {
@@ -142,17 +149,15 @@ fn engine(state: Arc<ClickerState>, app_handle: tauri::AppHandle) {
             };
 
             let _ = enigo.button(button, Click);
+
             if is_double {
                 thread::park_timeout(Duration::from_millis(30));
+
                 if !state.is_running.load(Ordering::SeqCst) {
                     continue;
                 }
-                let _ = enigo.button(button, Click);
-            }
 
-            if stop_after_this {
-                state.is_running.store(false, Ordering::SeqCst);
-                let _ = app_handle.emit("engine-stopped", ());
+                let _ = enigo.button(button, Click);
             }
 
             let base_interval = state.interval_ms.load(Ordering::SeqCst);
@@ -166,7 +171,7 @@ fn engine(state: Arc<ClickerState>, app_handle: tauri::AppHandle) {
                     if plus {
                         base_interval.saturating_add(jitter)
                     } else {
-                        base_interval.saturating_sub(jitter)
+                        base_interval.saturating_sub(jitter).max(1)
                     }
                 } else {
                     base_interval
@@ -175,10 +180,13 @@ fn engine(state: Arc<ClickerState>, app_handle: tauri::AppHandle) {
                 base_interval
             };
 
-            thread::park_timeout(Duration::from_millis(delay));
+            if state.is_running.load(Ordering::SeqCst) {
+                thread::park_timeout(Duration::from_millis(delay));
+            }
         }
     });
 }
+
 
 #[tauri::command]
 async fn get_mouse_pos() -> (i32, i32) {
@@ -196,16 +204,108 @@ async fn get_mouse_pos() -> (i32, i32) {
     }
 }
 
+
+fn get_key_name(key: &Keycode) -> String {
+    match key {
+        Keycode::Comma => "Comma".to_string(),
+        Keycode::Dot => "Period".to_string(),
+        Keycode::Slash => "Slash".to_string(),
+        Keycode::Semicolon => "Semicolon".to_string(),
+        Keycode::Apostrophe => "Quote".to_string(),
+        Keycode::LeftBracket => "BracketLeft".to_string(),
+        Keycode::RightBracket => "BracketRight".to_string(),
+        Keycode::BackSlash => "Backslash".to_string(),
+        Keycode::Minus => "Minus".to_string(),
+        Keycode::Equal => "Equal".to_string(),
+        Keycode::Grave => "Backquote".to_string(),
+        _ => format!("{:?}", key).replace("Key", ""),
+    }
+}
+
+fn is_modifier(key: &Keycode) -> bool {
+    matches!(
+        key,
+        Keycode::LControl | Keycode::RControl |
+        Keycode::LShift | Keycode::RShift |
+        Keycode::LAlt | Keycode::RAlt
+    )
+}
+
+#[tauri::command]
+async fn capture_hotkey(app: tauri::AppHandle) -> Result<String, String> {
+    let device_state = DeviceState::new();
+    let mut captured_keys: Vec<Keycode> = Vec::new();
+
+    while !device_state.get_keys().is_empty() {
+        thread::sleep(Duration::from_millis(20));
+    }
+
+    loop {
+        let keys = device_state.get_keys();
+
+        if !keys.is_empty() {
+            let current_str = format_hotkey(&keys);
+            let _ = app.emit("hotkey-tick", &current_str);
+
+            if keys.len() > 1 && !current_str.contains("...") {
+                return Ok(current_str);
+            }
+            captured_keys = keys.clone();
+        } else if !captured_keys.is_empty() {
+            let final_str = format_hotkey(&captured_keys);
+
+            if  !final_str.is_empty() && !final_str.contains("..."){
+                return Ok(final_str);
+            }
+
+            let _ = app.emit("hotkey-tick", "");
+            captured_keys.clear();
+        }
+
+        thread::sleep(Duration::from_millis(10));
+    }
+}
+
+fn format_hotkey(keys: &[Keycode]) -> String {
+    let mut modifier = "";
+    let mut main_key = String::new();
+
+    for key in keys {
+        if is_modifier(key) {
+            if modifier.is_empty() {
+                modifier = match key {
+                    Keycode::LControl | Keycode::RControl => "Control",
+                    Keycode::LShift | Keycode::RShift => "Shift",
+                    Keycode::LAlt | Keycode::RAlt => "Alt",
+                    _ => "",
+                };
+            }
+        } else {
+            main_key = get_key_name(key);
+        }
+    }
+
+    if modifier.is_empty() {
+        main_key
+    } else if main_key.is_empty() {
+        format!("{}+...", modifier)
+    } else {
+        format!("{}+{}", modifier, main_key)
+    }
+}
+
 #[tauri::command]
 fn update_hotkey(app: tauri::AppHandle, hotkey: String) -> Result<(), String> {
     let manager = app.global_shortcut();
     let _ = manager.unregister_all();
 
+    if hotkey.is_empty() { return Ok(()); }
+
     let shortcut = Shortcut::from_str(&hotkey)
-        .map_err(|e| format!("Critical hotkey error: {}", e))?;
+        .map_err(|e| format!("Invalid hotkey: {}", e))?;
 
     manager.register(shortcut)
-        .map_err(|e| format!("Declined by system: {}", e))?;
+        .map_err(|e| format!("System refused: {}", e))?;
 
     Ok(())
 }
@@ -217,91 +317,23 @@ fn unregister_current_hotkey(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-async fn capture_hotkey() -> Result<String, String> {
-    let device_state = DeviceState::new();
-
-    loop {
-        if device_state.get_keys().is_empty() { break; }
-        thread::sleep(Duration::from_millis(20));
-    }
-
-    let mut captured_keys: Vec<Keycode>;
-
-    loop {
-        let keys = device_state.get_keys();
-        if !keys.is_empty() {
-            captured_keys = keys;
-            break;
-        }
-        thread::sleep(Duration::from_millis(10));
-    }
-
-    loop {
-        let keys = device_state.get_keys();
-        if keys.is_empty() { break; }
-        for k in keys {
-            if !captured_keys.contains(&k) && captured_keys.len() < 2 {
-                captured_keys.push(k);
-            }
-        }
-        thread::sleep(Duration::from_millis(10));
-    }
-
-    let mut mods = Vec::new();
-    let mut main_key = String::new();
-
-    for key in captured_keys {
-        match key {
-            Keycode::LControl | Keycode::RControl => if !mods.contains(&"Control") { mods.push("Control") },
-            Keycode::LShift | Keycode::RShift => if !mods.contains(&"Shift") { mods.push("Shift") },
-            Keycode::LAlt | Keycode::RAlt => if !mods.contains(&"Alt") { mods.push("Alt") },
-            Keycode::LMeta | Keycode::RMeta => if !mods.contains(&"Command") { mods.push("Command") },
-            _ => {
-                main_key = match key {
-                    Keycode::Comma => "Comma".to_string(),
-                    Keycode::Dot => "Period".to_string(),
-                    Keycode::Slash => "Slash".to_string(),
-                    Keycode::Semicolon => "Semicolon".to_string(),
-                    Keycode::Apostrophe => "Quote".to_string(),
-                    Keycode::LeftBracket => "BracketLeft".to_string(),
-                    Keycode::RightBracket => "BracketRight".to_string(),
-                    Keycode::BackSlash => "Backslash".to_string(),
-                    Keycode::Minus => "Minus".to_string(),
-                    Keycode::Equal => "Equal".to_string(),
-                    Keycode::Grave => "Backquote".to_string(),
-                    // Для всех остальных (F1-F12, буквы, цифры) оставляем старую логику
-                    _ => format!("{:?}", key).replace("Key", ""),
-                };
-            }
-        }
-    }
-
-    if main_key.is_empty() && mods.is_empty() {
-        return Err("No keys captured".into());
-    }
-
-    if main_key.is_empty() {
-        Ok(mods.join("+"))
-    } else if mods.is_empty() {
-        Ok(main_key)
-    } else {
-        Ok(format!("{}+{}", mods.join("+"), main_key))
-    }
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
 
     let clicker_state = Arc::new(ClickerState {
         is_running: AtomicBool::new(false),
+
         interval_ms: AtomicU64::new(5),
         offset_enabled: AtomicBool::new(false),
         offset_ms: AtomicU64::new(0),
 
         button_type: Mutex::new("Left".to_string()),
         click_type: Mutex::new("Single".to_string()),
-        repeat_mode: Mutex::new(RepeatMode::Infinite),
+
+        is_infinite: AtomicBool::new(true),
+        remaining_clicks: AtomicU64::new(u64::MAX),
+
         lock_at_enabled: AtomicBool::new(false),
         coords: Mutex::new((0, 0)),
 

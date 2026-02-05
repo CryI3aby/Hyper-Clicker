@@ -2,7 +2,7 @@
     import { invoke } from "@tauri-apps/api/core";
     import { listen } from "@tauri-apps/api/event";
     import { Store, load } from '@tauri-apps/plugin-store';
-    import { ref, reactive, onMounted, watch } from 'vue';
+    import { ref, reactive, onMounted, onUnmounted, watch } from 'vue';
     import { Icon } from "@iconify/vue";
 
     import Button from 'primevue/button';
@@ -53,7 +53,8 @@
     const lockAtPopped = ref(false);
     const hotkeyChangePopped = ref(false);
 
-    const shortcut = ref('F6');
+    const hotkeyLabel = ref('')
+    const shortcut = ref('Shift+F6');
 
     const saveButton = ref<'disabled' | 'enabled'>('disabled');
 
@@ -82,19 +83,26 @@
         saveButtonState: 'disabled' | 'enabled';
     }
 
+    let unlistenConfig: (() => void) | null = null;
+    let unlistenStopped: (() => void) | null = null;
 
     onMounted(async () => {
         await loadSettings();
 
-        await listen("request-config", async () => {
+        unlistenConfig = await listen("request-config", async () => {
             await sendConfig();
             isRunning.value = true;
             await invoke("start_engine");
         });
 
-        await listen("engine-stopped", () => {
+        unlistenStopped = await listen("engine-stopped", () => {
             isRunning.value = false;
         });
+    });
+
+    onUnmounted(() => {
+        unlistenConfig?.();
+        unlistenStopped?.();
     });
 
 
@@ -105,7 +113,7 @@
         if (savedHotkey) {
             shortcut.value = savedHotkey;
         } else {
-            shortcut.value = 'F6';
+            shortcut.value = 'Shift+F6';
         }
 
         await invoke("unregister_current_hotkey");
@@ -200,9 +208,10 @@
 
                 button_type: selectedMouseButton.value.name,
                 click_type: selectedClickType.value.name,
-                repeat_mode: repeatMode.value === "repeatUntil"
-                    ? { type: "Infinite" }
-                    : { type: "Count", value: (repeatCount.value ?? 1) > 0 ? repeatCount.value : 1 },
+
+                is_infinite: repeatMode.value === "repeatUntil",
+                click_count: Math.abs(repeatCount.value ?? 0),
+
                 lock_at_enabled: lockAtMode.value,
                 x: coords.x ?? 0,
                 y: coords.y ?? 0,
@@ -231,38 +240,39 @@
     }
 
     async function hotkeyChange() {
-        if (isRunning.value) {
-            await stopButton();
-        }
+        if (isRunning.value) await stopButton();
+
+        hotkeyLabel.value = '...';
         hotkeyChangePopped.value = true;
+
+        const unlisten = await listen<string>('hotkey-tick', (event) => {
+            hotkeyLabel.value = event.payload.replace(/\+/g, ' + ');
+        });
 
         try {
             await invoke("unregister_current_hotkey");
             const newKey = await invoke<string>("capture_hotkey");
-            await invoke("update_hotkey", { hotkey: newKey });
 
-            shortcut.value = newKey;
+            if (newKey) {
+                shortcut.value = newKey;
 
-            if (store) {
-                await store.set('hotkey', newKey);
-                await store.save();
+                if (store) {
+                    await store.set('hotkey', newKey);
+                    await store.save();
+                }
+                await invoke("update_hotkey", { hotkey: newKey });
             }
-
-            if (saveButton.value === 'enabled') {
-                await saveSettings();
-            }
-
-        } catch (e) {
-            console.error("Error:", e);
-            await invoke("update_hotkey", { hotkey: shortcut.value });
         } finally {
+            unlisten();
             hotkeyChangePopped.value = false;
         }
     }
 
     watch(settingsToWatch, async () => {
+        if (isRunning.value) {
+            await stopButton();
+        }
         saveSettings();
-
         await sendConfig();
     }, { deep: true });
 
@@ -360,9 +370,9 @@
             <Button class="col-span-3 text-lg" @click="startButton" label="Start" :severity="!isRunning ? 'primary' : 'secondary'" :disabled="isRunning"/>
             <Button class="col-span-3 text-lg" @click="stopButton" label="Stop" :severity="isRunning ? 'danger' : 'secondary'" :disabled="!isRunning"/>
             <Button class="col-span-3" @click="hotkeyChange" severity="secondary" variant="outlined" >
-                <div class="flex flex-col items-center gap-1">
+                <div class="flex flex-col items-center gap-1 ">
                     <span class="font-medium text-sm">Hotkey</span>
-                    <Tag>{{ shortcut }}</Tag>
+                    <Tag class="px-[5px]">{{ shortcut }}</Tag>
                 </div>
             </Button>
             <Button class="col-span-2 gap-1" @click="saveToggle" severity="secondary" variant="outlined">
@@ -374,8 +384,16 @@
                     ></Tag>
                 </div>
             </Button>
-            <Dialog v-model:visible="hotkeyChangePopped" :draggable="false" modal header="Hotkey Change" :closable="false" :style="{ width: '60%' }">
-                <p>Press and release the shortcut (Max 2 keys)</p>
+            <Dialog v-model:visible="hotkeyChangePopped" class="content-center" :draggable="false" modal :closable="false" :style="{ width: '50%' }">
+                <template #header>
+                    <div class="flex justify-center w-full">
+                        <p class="text-lg font-bold">Recording...</p>
+                    </div>
+                </template>
+                <div class="flex justify-center pb-6">
+                    <Tag class="text-lg">{{ hotkeyLabel || '...' }}</Tag>
+                </div>
+                <p class="flex justify-center text-[#535353]">Modifiers: Ctrl/Shift/Alt</p>
             </Dialog>
         </div>
     </div>
