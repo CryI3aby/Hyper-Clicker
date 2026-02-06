@@ -351,8 +351,13 @@
 
             <div class="flex flex-row gap-2 col-start-6 col-span-7">
                 <RadioButton class="place-self-center" v-model="lockAtMode" :value="true" size="large"/>
-                <Dialog v-model:visible="lockAtPopped" :draggable="false" modal header="Lock At" :closable="false" :style="{ width: '60%' }">
-                    <p>Press ENTER on the desired location</p>
+                <Dialog v-model:visible="lockAtPopped" :draggable="false" modal :closable="false" :style="{ width: '65%' }">
+                    <template #header>
+                        <div class="flex justify-center w-full my-[-4px]">
+                            <p class="text-lg font-bold" >Lock At</p>
+                        </div>
+                    </template>
+                    <p class="text-center text-[#707070]">Press <Tag class="text-sm">Enter</Tag> at the desired location</p>
                 </Dialog>
                 <FloatLabel variant="on" fluid>
                     <InputNumber v-model="coords.x" @input="(e) => hardSave('x', e)" inputId="withoutgrouping on_label" :useGrouping="false" size="small" fluid />
@@ -393,7 +398,7 @@
                 <div class="flex justify-center pb-6">
                     <Tag class="text-lg">{{ hotkeyLabel || '...' }}</Tag>
                 </div>
-                <p class="flex justify-center text-[#535353]">Modifiers: Ctrl/Shift/Alt</p>
+                <p class="flex justify-center text-[#707070]">Modifiers: Ctrl/Shift/Alt</p>
             </Dialog>
         </div>
     </div>

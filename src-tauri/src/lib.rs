@@ -274,7 +274,7 @@ fn format_hotkey(keys: &[Keycode]) -> String {
         if is_modifier(key) {
             if modifier.is_empty() {
                 modifier = match key {
-                    Keycode::LControl | Keycode::RControl => "Control",
+                    Keycode::LControl | Keycode::RControl => "Ctrl",
                     Keycode::LShift | Keycode::RShift => "Shift",
                     Keycode::LAlt | Keycode::RAlt => "Alt",
                     _ => "",
