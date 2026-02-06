@@ -1,6 +1,5 @@
-# ![Logo](.github/Hyper-Clicker-Banner.png)
+![Logo](.github/Hyper-Clicker-Banner.png)
 
-A modern lightweight auto-clicker built with Tauri
 
 ## Used
 
