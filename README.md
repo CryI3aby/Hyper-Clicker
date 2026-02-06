@@ -1,5 +1,9 @@
 ![Logo](.github/Hyper-Clicker-Banner.png)
 
+## Screenshot
+
+![Screenshot](.github/Hyper-Clicker.png)
+
 
 ## Used
 
@@ -9,7 +13,3 @@
 - [PrimeVue](https://github.com/primefaces/primevue)
 - [Enigo](https://github.com/enigo-rs/enigo)
 - [device_query](https://github.com/ostrosco/device_query)
-
-## Screenshot
-
-![Screenshot](.github/Hyper-Clicker.png)
